@@ -4,12 +4,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 public final class Pub extends GenericCell {
-
+    private final int id;
     private final Set<Node> presentNodes;
 
-    public Pub(int xCoordinate, int yCoordinate) {
+    public Pub(int id, int xCoordinate, int yCoordinate) {
         super(xCoordinate, yCoordinate);
+        this.id = id;
         presentNodes = new HashSet<>();
+    }
+
+    public int getId() {
+        return id;
     }
 
     public Set<Node> getPresentNodes() {

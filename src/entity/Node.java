@@ -3,16 +3,22 @@ package entity;
 import java.util.Set;
 
 public class Node {
+    private final int id;
     private final Home home;
     private final int speed;
-    private final Set<Node> friends;
+    private final Set<Integer> friendsId;
     private GenericCell currentCell;
 
-    public Node(Home home, int speed, Set<Node> friends) {
+    public Node(int id, Home home, int speed, Set<Integer> friendsId) {
+        this.id = id;
         this.home = home;
         this.speed = speed;
-        this.friends = friends;
+        this.friendsId = friendsId;
         this.currentCell = home;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public Home getHome() {
@@ -23,8 +29,8 @@ public class Node {
         return speed;
     }
 
-    public Set<Node> getFriends() {
-        return friends;
+    public Set<Integer> getFriendsId() {
+        return friendsId;
     }
 
     public GenericCell getCurrentCell() {
