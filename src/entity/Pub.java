@@ -8,9 +8,9 @@ public final class Pub extends GenericCell {
     private final Set<Node> presentNodes;
 
     public Pub(int id, int xCoordinate, int yCoordinate) {
-        super(xCoordinate, yCoordinate);
+        super(xCoordinate, yCoordinate, CellType.PUB);
         this.id = id;
-        presentNodes = new HashSet<>();
+        this.presentNodes = new HashSet<>();
     }
 
     public int getId() {

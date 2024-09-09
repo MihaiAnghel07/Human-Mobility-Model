@@ -3,12 +3,15 @@ package entity;
 import java.util.Objects;
 
 public class GenericCell {
-    private final int xCoordinate;
-    private final int yCoordinate;
+    private int xCoordinate;
+    private int yCoordinate;
 
-    public GenericCell(int xCoordinate, int yCoordinate) {
+    private final CellType cellType;
+
+    public GenericCell(int xCoordinate, int yCoordinate, CellType cellType) {
         this.xCoordinate = xCoordinate;
         this.yCoordinate = yCoordinate;
+        this.cellType = cellType;
     }
 
     public int getXCoordinate() {
@@ -17,6 +20,18 @@ public class GenericCell {
 
     public int getYCoordinate() {
         return yCoordinate;
+    }
+
+    public void setxCoordinate(int xCoordinate) {
+        this.xCoordinate = xCoordinate;
+    }
+
+    public void setyCoordinate(int yCoordinate) {
+        this.yCoordinate = yCoordinate;
+    }
+
+    public CellType getCellType() {
+        return cellType;
     }
 
     @Override
@@ -28,12 +43,14 @@ public class GenericCell {
             return false;
         }
         GenericCell genericCell = (GenericCell) o;
-        return xCoordinate == genericCell.xCoordinate && yCoordinate == genericCell.yCoordinate;
+        return xCoordinate == genericCell.xCoordinate
+                && yCoordinate == genericCell.yCoordinate
+                && cellType == genericCell.cellType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(xCoordinate, yCoordinate);
+        return Objects.hash(xCoordinate, yCoordinate, cellType);
     }
 
     @Override
@@ -41,6 +58,7 @@ public class GenericCell {
         return "GenericCell{" +
                 "xCoordinate=" + xCoordinate +
                 ", yCoordinate=" + yCoordinate +
+                ", cellType=" + cellType +
                 '}';
     }
 }

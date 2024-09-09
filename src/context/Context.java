@@ -1,5 +1,6 @@
 package context;
 
+import entity.CellType;
 import entity.GenericCell;
 import entity.Node;
 import entity.Pub;
@@ -28,6 +29,7 @@ public final class Context {
 
         nodes.forEach(node -> map[node.getHome().getXCoordinate()][node.getHome().getYCoordinate()] = node.getHome());
         pubs.forEach(pub -> map[pub.getXCoordinate()][pub.getYCoordinate()] = pub);
+        // TODO: to be set map other cells?
     }
 
     public int getXDimension() {

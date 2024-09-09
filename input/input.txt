@@ -1,6 +1,10 @@
+#dimensiunea contextului
 50 50
+#viteza min/max
 1 3
-10
+#numarul de noduri / pub-uri
+10 4
+#urmeaza nodurile: id, homeX, homeY
 1 1 2
 2 25 6
 3 12 45
@@ -11,7 +15,18 @@
 8 17 38
 9 3 44
 10 22 21
+#pub-urile: id, pubX, pubY
 1 29 29
 2 5 4
 3 16 42
 4 39 1
+#relatiile de prietenie dintre noduri
+1 3 5 7 9
+2 4 6
+3 1 4 8
+4 2 3
+5 1 4
+6 2
+7 1
+8 3
+9 1
