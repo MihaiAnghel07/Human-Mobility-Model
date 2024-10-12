@@ -4,5 +4,6 @@ public enum CellType {
     HOME,
     WORK,
     PUB,
-    OTHER;
+    OTHER,
+    EMPTY;
 }

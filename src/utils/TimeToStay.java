@@ -1,32 +1,33 @@
 package utils;
 
+import entity.CellType;
 import entity.GenericCell;
 
 public enum TimeToStay {
-    HOME(6),
-    WORK(9),
-    PUB(2),
-    OTHER(1);
+    HOME(360),
+    WORK(540),
+    PUB(120),
+    OTHER(60);
 
-    private final int hours;
+    private final int minutes;
 
-    TimeToStay(int hours) {
-        this.hours = hours;
+    TimeToStay(int minutes) {
+        this.minutes = minutes;
     }
 
-    public int getHours() {
-        return hours;
+    public int getMinutes() {
+        return minutes;
     }
 
-    public static int getHours(GenericCell cell) {
-        if (cell == null)
+    public static int getMinutes(GenericCell cell) {
+        if (cell == null || cell.getCellType() == CellType.EMPTY)
             return 0;
 
         switch (cell.getCellType()) {
-            case HOME: return HOME.hours;
-            case WORK: return WORK.hours;
-            case PUB: return PUB.hours;
-            case OTHER: return OTHER.hours;
+            case HOME: return HOME.minutes;
+            case WORK: return WORK.minutes;
+            case PUB: return PUB.minutes;
+            case OTHER: return OTHER.minutes;
             default: return 0;
         }
     }

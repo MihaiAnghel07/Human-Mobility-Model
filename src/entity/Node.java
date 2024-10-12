@@ -4,25 +4,27 @@ import java.util.*;
 
 public class Node {
     private final int id;
-    private final GenericCell home;
+    private final GenericCell homeCell;
     private final int speed;
     private Set<Node> friends;
     private GenericCell currentCell;
+    private final GenericCell workCell;
     private GenericCell targetCell;
     private int timeToStay;
-    private Map<String, Integer> activityWeight;
+    private Map<CellType, Integer> activityWeight;
 
-    public Node(int id, GenericCell home, int speed) {
+    public Node(int id, GenericCell homeCell, GenericCell work, int speed) {
         this.id = id;
-        this.home = home;
+        this.homeCell = homeCell;
         this.speed = speed;
-        this.currentCell = home;
+        this.currentCell = homeCell;
+        this.workCell = work;
         this.targetCell = null;
         this.activityWeight = new HashMap<>();
-        this.activityWeight.put("home", 40);
-        this.activityWeight.put("pub", 10);
-        this.activityWeight.put("work", 40);
-        this.activityWeight.put("other", 10);
+        this.activityWeight.put(CellType.HOME, 40);
+        this.activityWeight.put(CellType.WORK, 40);
+        this.activityWeight.put(CellType.PUB, 10);
+        this.activityWeight.put(CellType.OTHER, 10);
         this.friends = new HashSet<>();
         this.timeToStay = 0;
     }
@@ -31,8 +33,8 @@ public class Node {
         return id;
     }
 
-    public GenericCell getHome() {
-        return home;
+    public GenericCell getHomeCell() {
+        return homeCell;
     }
 
     public int getSpeed() {
@@ -59,15 +61,19 @@ public class Node {
         return targetCell;
     }
 
+    public GenericCell getWorkCell() {
+        return workCell;
+    }
+
     public void setTargetCell(GenericCell targetCell) {
         this.targetCell = targetCell;
     }
 
-    public Map<String, Integer> getActivityWeight() {
+    public Map<CellType, Integer> getActivityWeight() {
         return activityWeight;
     }
 
-    public void setActivityWeight(Map<String, Integer> activityWeight) {
+    public void setActivityWeight(Map<CellType, Integer> activityWeight) {
         this.activityWeight = activityWeight;
     }
 
@@ -99,9 +105,10 @@ public class Node {
         Node node = (Node) o;
         return id == node.id &&
                 speed == node.speed &&
-                Objects.equals(home, node.home) &&
+                Objects.equals(homeCell, node.homeCell) &&
 //                Objects.equals(friends, node.friends) &&
                 Objects.equals(currentCell, node.currentCell) &&
+                Objects.equals(workCell, node.workCell) &&
                 Objects.equals(targetCell, node.targetCell) &&
                 Objects.equals(activityWeight, node.activityWeight) &&
                 Objects.equals(timeToStay, node.timeToStay);
@@ -109,14 +116,14 @@ public class Node {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, home, speed, currentCell, targetCell, activityWeight, timeToStay);
+        return Objects.hash(id, homeCell, speed, currentCell, workCell, targetCell, activityWeight, timeToStay);
     }
 
     @Override
     public String toString() {
         return "Node{" +
                 "id=" + id +
-                ", home=" + home +
+                ", homeCell=" + homeCell +
 //                ", speed=" + speed +
 //                ", friends=" + friends +
 //                ", currentCell=" + currentCell +

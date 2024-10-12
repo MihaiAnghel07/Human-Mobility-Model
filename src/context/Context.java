@@ -27,9 +27,23 @@ public final class Context {
         this.pubs = pubs;
         this.map = new GenericCell[xDimension][yDimension];
 
-        nodes.forEach(node -> map[node.getHome().getXCoordinate()][node.getHome().getYCoordinate()] = node.getHome());
+        // set the home and work places on map
+        nodes.forEach(node -> {
+            map[node.getHomeCell().getXCoordinate()][node.getHomeCell().getYCoordinate()] = node.getHomeCell();
+            map[node.getWorkCell().getXCoordinate()][node.getWorkCell().getYCoordinate()] = node.getWorkCell();
+        });
+
+        // set pub places on map
         pubs.forEach(pub -> map[pub.getXCoordinate()][pub.getYCoordinate()] = pub);
-        // TODO: to be set map other cells?
+
+        // set empty cells
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map[i].length; j++) {
+                if (map[i][j] == null) {
+                    map[i][j] = new GenericCell(i, j, CellType.EMPTY);
+                }
+            }
+        }
     }
 
     public int getXDimension() {

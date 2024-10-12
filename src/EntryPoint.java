@@ -94,8 +94,13 @@ public final class EntryPoint {
         int id = Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
         int homeXCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
         int homeYCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[2].strip());
+        int workXCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[3].strip());
+        int workYCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[4].strip());
 
-        return new Node(id, new GenericCell(homeXCoordinate, homeYCoordinate, CellType.HOME), 1);
+        return new Node(id,
+                new GenericCell(homeXCoordinate, homeYCoordinate, CellType.HOME),
+                new GenericCell(workXCoordinate, workYCoordinate, CellType.WORK),
+                1);
     }
 
     private static Pub readPub(String data) {

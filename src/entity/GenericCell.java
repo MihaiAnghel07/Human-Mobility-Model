@@ -5,7 +5,6 @@ import java.util.Objects;
 public class GenericCell {
     private int xCoordinate;
     private int yCoordinate;
-
     private final CellType cellType;
 
     public GenericCell(int xCoordinate, int yCoordinate, CellType cellType) {
@@ -22,11 +21,11 @@ public class GenericCell {
         return yCoordinate;
     }
 
-    public void setxCoordinate(int xCoordinate) {
+    public void setXCoordinate(int xCoordinate) {
         this.xCoordinate = xCoordinate;
     }
 
-    public void setyCoordinate(int yCoordinate) {
+    public void setYCoordinate(int yCoordinate) {
         this.yCoordinate = yCoordinate;
     }
 
