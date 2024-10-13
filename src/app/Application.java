@@ -18,7 +18,6 @@ public final class Application {
     private Context context;
 
     public void start(Context context) {
-//        System.out.println(context);
         setContext(context);
         placeNodesToTheirHome(context);
 
@@ -38,6 +37,7 @@ public final class Application {
                 }
 
                 // nodes are being moved based on their activity weight
+                // TODO: movement on diag + obstacles avoiding
                 moveNode(node, finalT);
             });
         }
@@ -220,7 +220,7 @@ public final class Application {
             case PUB:
                 return chooseTargetPub(node);
             case OTHER:
-                System.out.println("OTHER - TO BE IMPLEMENTED");
+                return chooseOtherPlaceToGo(node);
             default: return null;
         }
     }
@@ -240,6 +240,43 @@ public final class Application {
                 });
 
         return targetPub.get();
+    }
+
+    private GenericCell chooseOtherPlaceToGo(Node node) {
+        // there are two ways to choose other place to go
+        // 1. nearest place marked as 'other' on map
+        // 2. random
+        // will make the decision on what way is chosen random
+
+        int randomNumber = new Random().nextInt(2);
+
+        if (randomNumber == 0) {
+            return getNearestOtherPlaceToGo(node);
+        } else {
+            return getRandomOtherPlaceToGo();
+        }
+    }
+
+    private GenericCell getNearestOtherPlaceToGo(Node node) {
+        // select nearest place to go based on Euclidean distance
+        AtomicReference<GenericCell> resultCell = new AtomicReference<>();
+        int currentX = node.getCurrentCell().getXCoordinate();
+        int currentY = node.getCurrentCell().getYCoordinate();
+
+        AtomicReference<Double> minDistance = new AtomicReference<>(Double.MAX_VALUE);
+        context.getOthers().forEach(other -> {
+            if (Math.sqrt(Math.pow(other.getXCoordinate() - currentX, 2) + Math.pow(other.getYCoordinate() - currentY, 2)) < minDistance.get()) {
+                minDistance.set(Math.sqrt(Math.pow(other.getXCoordinate() - currentX, 2) + Math.pow(other.getYCoordinate() - currentY, 2)));
+                resultCell.set(other);
+            }
+        });
+
+        return resultCell.get();
+    }
+
+    private GenericCell getRandomOtherPlaceToGo() {
+        int randomNumber = new Random().nextInt(context.getOthers().size());
+        return new ArrayList<>(context.getOthers()).get(randomNumber);
     }
 
     private void setContext(Context context) {

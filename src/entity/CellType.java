@@ -5,5 +5,6 @@ public enum CellType {
     WORK,
     PUB,
     OTHER,
+    OBSTACLE,
     EMPTY;
 }

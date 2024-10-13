@@ -28,8 +28,11 @@ public final class EntryPoint {
         int maxSpeed = 0;
         int nrNodes = 0;
         int nrPubs = 0;
+        int nrOthers = 0;
         Set<Node> nodes = new HashSet<>();
         Set<Pub> pubs = new HashSet<>();
+        Set<GenericCell> others = new HashSet<>();
+        Set<GenericCell> obstacles = new HashSet<>();
 
         try {
             int i = 0;
@@ -49,11 +52,12 @@ public final class EntryPoint {
             minSpeed = Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
             maxSpeed = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
 
-            // read nr of nodes and nr of pubs
+            // read nr of nodes, nr of pubs and nr of other places
             scanner.nextLine();
             data = scanner.nextLine();
             nrNodes = Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
             nrPubs = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
+            nrOthers = Integer.parseInt(data.split(EMPTY_SPACE)[2].strip());
 
             while (i < nrNodes) {
                 data = scanner.nextLine();
@@ -73,12 +77,30 @@ public final class EntryPoint {
                 i++;
             }
 
-            //read friendship
-            while (scanner.hasNextLine()) {
+            // read Others
+            i = 0;
+            while (i < nrOthers) {
+                data = scanner.nextLine();
+                if (data.startsWith("#"))
+                    continue;
+                others.add(readOther(data));
+                i++;
+            }
+
+            // read friendship
+            while (scanner.hasNextLine() && !data.startsWith("#obstacole")) {
                 data = scanner.nextLine();
                 if (data.startsWith("#"))
                     continue;
                 readFriendship(data, nodes);
+            }
+
+            // read obstacles
+            while (scanner.hasNextLine()) {
+                data = scanner.nextLine();
+                if (data.startsWith("#"))
+                    continue;
+                obstacles.add(readObstacle(data));
             }
 
             scanner.close();
@@ -87,7 +109,7 @@ public final class EntryPoint {
             e.printStackTrace();
         }
 
-        return new Context(contextX, contextY, minSpeed, maxSpeed, nodes, pubs);
+        return new Context(contextX, contextY, minSpeed, maxSpeed, nodes, pubs, others, obstacles);
     }
 
     private static Node readNode(String data) {
@@ -105,10 +127,17 @@ public final class EntryPoint {
 
     private static Pub readPub(String data) {
         int id = Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
-        int XCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
-        int YCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[2].strip());
+        int xCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
+        int yCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[2].strip());
 
-        return new Pub(id, XCoordinate, YCoordinate);
+        return new Pub(id, xCoordinate, yCoordinate);
+    }
+
+    private static GenericCell readOther(String data) {
+        int xCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
+        int yCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
+
+        return new GenericCell(xCoordinate, yCoordinate, CellType.OTHER);
     }
 
     private static void readFriendship(String data, Set<Node> nodes) {
@@ -129,6 +158,13 @@ public final class EntryPoint {
                  node.setFriends(friends);
              }
          });
+    }
+
+    private static GenericCell readObstacle(String data) {
+        int xCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
+        int yCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
+
+        return new GenericCell(xCoordinate, yCoordinate, CellType.OBSTACLE);
     }
 
 }

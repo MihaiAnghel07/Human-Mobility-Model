@@ -16,15 +16,20 @@ public final class Context {
     private final int maxSpeed;
     private final Set<Node> nodes;
     private final Set<Pub> pubs;
+    private final Set<GenericCell> others;
+    private final Set<GenericCell> obstacles;
     private final GenericCell[][] map;
 
-    public Context(int xDimension, int yDimension, int minSpeed, int maxSpeed, Set<Node> nodes, Set<Pub> pubs) {
+    public Context(int xDimension, int yDimension, int minSpeed, int maxSpeed, Set<Node> nodes,
+                   Set<Pub> pubs, Set<GenericCell> others, Set<GenericCell> obstacles) {
         this.xDimension = xDimension;
         this.yDimension = yDimension;
         this.minSpeed = minSpeed;
         this.maxSpeed = maxSpeed;
         this.nodes = nodes;
         this.pubs = pubs;
+        this.others = others;
+        this.obstacles = obstacles;
         this.map = new GenericCell[xDimension][yDimension];
 
         // set the home and work places on map
@@ -35,6 +40,12 @@ public final class Context {
 
         // set pub places on map
         pubs.forEach(pub -> map[pub.getXCoordinate()][pub.getYCoordinate()] = pub);
+
+        // set other places on map
+        others.forEach(other -> map[other.getXCoordinate()][other.getYCoordinate()] = other);
+
+        // set obstacles on map
+        obstacles.forEach(obstacle -> map[obstacle.getXCoordinate()][obstacle.getYCoordinate()] = obstacle);
 
         // set empty cells
         for (int i = 0; i < map.length; i++) {
@@ -68,6 +79,14 @@ public final class Context {
 
     public Set<Pub> getPubs() {
         return pubs;
+    }
+
+    public Set<GenericCell> getOthers() {
+        return others;
+    }
+
+    public Set<GenericCell> getObstacles() {
+        return obstacles;
     }
 
     public GenericCell[][] getMap() {
