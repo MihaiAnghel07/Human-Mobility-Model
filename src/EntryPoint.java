@@ -4,6 +4,9 @@ import entity.CellType;
 import entity.GenericCell;
 import entity.Node;
 import entity.Pub;
+import io.AWSS3Downloader;
+import io.AWSS3Service;
+import io.AWSS3Uploader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,8 +20,15 @@ public final class EntryPoint {
     private static final Application application = new Application();
 
     public static void main(String[] args) {
-        Context context = getContext();
-        application.start(context);
+        AWSS3Uploader awss3Uploader = new AWSS3Uploader();
+        AWSS3Downloader awss3Downloader = new AWSS3Downloader();
+        awss3Uploader.uploadFile("input/input.txt", "input-key");
+        awss3Downloader.downloadAndVerifyFile("input-key",
+                "input/input_downloaded.txt",
+                "nGWMQkSU3kII/R+Kr89m6GU613LXBJCYiU2c+MqZ/qI=");
+
+//        Context context = getContext();
+//        application.start(context);
     }
 
     private static Context getContext() {
