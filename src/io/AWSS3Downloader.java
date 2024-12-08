@@ -17,23 +17,29 @@ public class AWSS3Downloader extends AWSS3Service {
         super();
     }
 
-    // Funcție pentru descărcare fișier de pe S3
+    // Funcție pentru descarcare fisier de pe S3
     public void downloadAndVerifyFile(String keyName, String downloadPath, String originalHmacSignature) {
         try {
             S3Object s3Object = s3Client.getObject(new GetObjectRequest(BUCKET_NAME, keyName));
             InputStream inputStream = s3Object.getObjectContent();
 
-            // Citire conținut fișier pentru verificarea HMAC
+            // Citire continut fisier pentru verificarea HMAC
             byte[] fileBytes = inputStream.readAllBytes();
             String fileContent = new String(fileBytes, StandardCharsets.UTF_8);
 
-            // Generare semnătură HMAC pentru verificarea integrității
+            // Generare semnatura HMAC pentru verificarea integritatii
             String calculatedHmac = generateHmacSHA256(fileContent, SECRET_KEY);
 
-            // Comparare semnături HMAC
-            if (calculatedHmac.equals(originalHmacSignature)) {
+            // Download semnatura HMAC
+            S3Object s3Object2 = s3Client.getObject(new GetObjectRequest(BUCKET_NAME, keyName + "HMAC"));
+            InputStream inputStream2 = s3Object2.getObjectContent();
+            byte[] hmacSignatureBytes = inputStream2.readAllBytes();
+            String hmacSignatureDownloaded = new String(hmacSignatureBytes, StandardCharsets.UTF_8);
+
+            // Comparare semnaturi HMAC
+            if (calculatedHmac.equals(hmacSignatureDownloaded)) {
                 System.out.println("Integrity verified. File is secure.");
-                // Scriere fișier la locația specificată
+                // Scriere fisier la locatia specificata
                 Files.write(Paths.get(downloadPath), fileBytes);
             } else {
                 System.out.println("Integrity check failed! File may have been altered.");
