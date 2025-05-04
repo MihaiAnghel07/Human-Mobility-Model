@@ -8,105 +8,169 @@ import entity.Pub;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
 import utils.TimeToStay;
+import utils.Utils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+
+import static utils.Utils.NUMBER_OF_ITERATIONS;
+import static utils.Utils.OUTPUT_PATH;
 
 public final class Application {
 
     private Context context;
+    private final StringBuilder stringBuilder = new StringBuilder();
 
     public void start(Context context) {
         setContext(context);
-        placeNodesToTheirHome(context);
+        placeNodesToTheirHome();
+        System.out.println("Relationships before: ");
+        printRelationships();
 
         // simulate the time elapse starting at 6 o'clock
-        // 24h but each iteration corresponds to 15 minutes
-        for (int t = 6; t < 220; t++) {
+        // 1 month, but each iteration corresponds to 15 minutes
+        int hour = 6;
+        for (int i = 0; i < NUMBER_OF_ITERATIONS; i++) {
 
-            int finalT = t;
+            if (i % 4 == 0 && hour < 24) {
+                hour++;
+            } else if (hour > 24) {
+                hour = 0;
+            }
+
+            int finalHour = hour;
             context.getNodes().forEach(node -> {
 
                 //update social network
-//                updateSocialNetwork(context);
+                updateSocialNetwork();
 
-                if (finalT % 4 == 0) {
+                if (finalHour % 4 == 0) {
                     // update activity weight according to current hour
-                    updateActivityWeight(node, finalT);
+                    updateActivityWeight(node, finalHour);
                 }
 
                 // nodes are being moved based on their activity weight
-                // TODO: movement on diag + obstacles avoiding
-                moveNode(node, finalT);
+                moveNode(node);
             });
+        }
+
+        System.out.println("Relationships after: ");
+        printRelationships();
+
+        try {
+            Files.writeString(Path.of(OUTPUT_PATH), stringBuilder.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
     }
 
-    private void moveNode(Node node, int t) {
-        // set the targetCell if it is the case
+    private void moveNode(Node node) {
+        // set the targetCell if it's the case
         if (node.getTargetCell() == null && node.getTimeToStay() == 0) {
             node.setTargetCell(getPlaceToGo(node));
+            List<Queue<Pair<Integer, Integer>>> paths = Utils.findShortestPaths(context.getMap(),
+                    new Pair<>(node.getCurrentCell().getXCoordinate(), node.getCurrentCell().getYCoordinate()),
+                    new Pair<>(node.getTargetCell().getXCoordinate(), node.getTargetCell().getYCoordinate()),
+                    2);
+
+            node.setPath(paths.get(0));
         }
 
-        if (node.getCurrentCell() == node.getTargetCell()) {
+        if (node.getCurrentCell().equals(node.getTargetCell())) {
             // node has arrived to destination
             node.setTargetCell(null);
+            node.setPath(null);
             node.setTimeToStay(TimeToStay.getMinutes(node.getCurrentCell()));
             System.out.println("Node[" + node.getId() + "] stays " + node.getTimeToStay() + " minutes");
+            stringBuilder
+                    .append("Node[")
+                    .append(node.getId())
+                    .append("] stays ")
+                    .append(node.getTimeToStay())
+                    .append(" minutes")
+                    .append('\n');
 
         } else if (node.getTargetCell() == null && node.getTimeToStay() != 0) {
             // lower the timeToStay with one period time (one iteration = 15 minutes)
-            node.setTimeToStay(node.getTimeToStay() - 15);
+            node.setTimeToStay(Math.max(0, node.getTimeToStay() - 15));
             System.out.println("Node[" + node.getId() + "] stays " + node.getTimeToStay() + " minutes");
+            stringBuilder
+                    .append("Node[")
+                    .append(node.getId())
+                    .append("] stays ")
+                    .append(node.getTimeToStay())
+                    .append(" minutes")
+                    .append('\n');
 
         } else if (node.getTargetCell() != null && node.getTimeToStay() == 0) {
             // node can move to a target
             moveNodeToTarget(node);
         }
-
     }
 
     private void moveNodeToTarget(Node node) {
-        int currentX = node.getCurrentCell().getXCoordinate();
-        int currentY = node.getCurrentCell().getYCoordinate();
-        int targetX = node.getTargetCell().getXCoordinate();
-        int targetY = node.getTargetCell().getYCoordinate();
-
-        int deltaX = Math.abs(targetX - currentX);
-        int deltaY = Math.abs(targetY - currentY);
-
-        if (deltaX == 0 && deltaY == 0) {
-            // node has already reached its destination
-            System.out.println("Node[" + node.getId() + "] arrived to destination");
-
-        } else if (deltaX == 0) {
-            // move on oy axis
-            moveNodeOY(node, targetY, currentY, currentX);
-
-        } else if (deltaY == 0) {
-            // move on ox axis
-            moveNodeOX(node, targetX, currentX, currentY);
-
-        } else {
-            // move on ox or oy axis
-            if ((node.getSpeed() <= deltaX && deltaX <= deltaY) || (node.getSpeed() > deltaX && deltaX >= deltaY)) {
-                // move on ox axis
-                moveNodeOX(node, targetX, currentX, currentY);
-
-            } else if ((node.getSpeed() <= deltaY && deltaY <= deltaX) || (node.getSpeed() > deltaY && deltaY >= deltaX)) {
-                // move on oy axis
-                moveNodeOY(node, targetY, currentY, currentX);
-            }
-        }
-
         System.out.println("Node[" + node.getId() + "] moved from ["
-                + currentX + ", " + currentY + "] to ["
-                + node.getCurrentCell().getXCoordinate() + ", " + node.getCurrentCell().getYCoordinate() + "]; target: ["
+                + node.getCurrentCell().getXCoordinate() + ", " + node.getCurrentCell().getYCoordinate() + "] to ["
+                + node.getPath().peek().getFirst() + ", " + node.getPath().peek().getSecond() + "]; target: ["
                 + node.getTargetCell().getXCoordinate() + ", " + node.getTargetCell().getYCoordinate() + "]->"
                 + node.getTargetCell().getCellType());
 
+        stringBuilder
+                .append("Node[")
+                .append(node.getId())
+                .append("] moved from [")
+                .append(node.getCurrentCell().getXCoordinate())
+                .append(", ")
+                .append(node.getCurrentCell().getYCoordinate())
+                .append("] to [")
+                .append(node.getPath().peek().getFirst())
+                .append(", ")
+                .append(node.getPath().peek().getSecond())
+                .append("]; target: [")
+                .append(node.getTargetCell().getXCoordinate())
+                .append(", ")
+                .append(node.getTargetCell().getYCoordinate())
+                .append("]->")
+                .append(node.getTargetCell().getCellType())
+                .append("\n");
+
+        node.setCurrentCell(context.getMap()[node.getPath().peek().getFirst()][node.getPath().poll().getSecond()]);
+
+
+//        int currentX = node.getCurrentCell().getXCoordinate();
+//        int currentY = node.getCurrentCell().getYCoordinate();
+//        int targetX = node.getTargetCell().getXCoordinate();
+//        int targetY = node.getTargetCell().getYCoordinate();
+//
+//        int deltaX = Math.abs(targetX - currentX);
+//        int deltaY = Math.abs(targetY - currentY);
+//
+//        if (deltaX == 0 && deltaY == 0) {
+//            // node has already reached its destination
+//            System.out.println("Node[" + node.getId() + "] arrived to destination");
+//
+//        } else if (deltaX == 0) {
+//            // move on oy axis
+//            moveNodeOY(node, targetY, currentY, currentX);
+//
+//        } else if (deltaY == 0) {
+//            // move on ox axis
+//            moveNodeOX(node, targetX, currentX, currentY);
+//
+//        } else {
+//            // move on ox or oy axis
+//            if ((node.getSpeed() <= deltaX && deltaX <= deltaY) || (node.getSpeed() > deltaX && deltaX >= deltaY)) {
+//                // move on ox axis
+//                moveNodeOX(node, targetX, currentX, currentY);
+//
+//            } else if ((node.getSpeed() <= deltaY && deltaY <= deltaX) || (node.getSpeed() > deltaY && deltaY >= deltaX)) {
+//                // move on oy axis
+//                moveNodeOY(node, targetY, currentY, currentX);
+//            }
+//        }
     }
 
     private void moveNodeOX(Node node, int targetX, int currentX, int currentY) {
@@ -117,6 +181,29 @@ public final class Application {
             // move to east
             node.setCurrentCell(context.getMap()[Math.max(currentX + node.getSpeed(), context.getXDimension() - 1)][currentY]);
         }
+        System.out.println("Node[" + node.getId() + "] moved from ["
+                + currentX + ", " + currentY + "] to ["
+                + node.getCurrentCell().getXCoordinate() + ", " + node.getCurrentCell().getYCoordinate() + "]; target: ["
+                + node.getTargetCell().getXCoordinate() + ", " + node.getTargetCell().getYCoordinate() + "]->"
+                + node.getTargetCell().getCellType());
+        stringBuilder
+                .append("Node[")
+                .append(node.getId())
+                .append("] moved from [")
+                .append(currentX)
+                .append(", ")
+                .append(currentY)
+                .append("] to [")
+                .append(node.getCurrentCell().getXCoordinate())
+                .append(", ")
+                .append(node.getCurrentCell().getYCoordinate())
+                .append("]; target: [")
+                .append(node.getTargetCell().getXCoordinate())
+                .append(", ")
+                .append(node.getTargetCell().getYCoordinate())
+                .append("]->")
+                .append(node.getTargetCell().getCellType())
+                .append("\n");
     }
 
     private void moveNodeOY(Node node, int targetY, int currentY, int currentX) {
@@ -127,11 +214,33 @@ public final class Application {
             // move to north
             node.setCurrentCell(context.getMap()[currentX][Math.min(currentY + node.getSpeed(), context.getYDimension() - 1)]);
         }
+
+        System.out.println("Node[" + node.getId() + "] moved from ["
+                + currentX + ", " + currentY + "] to ["
+                + node.getCurrentCell().getXCoordinate() + ", " + node.getCurrentCell().getYCoordinate() + "]; target: ["
+                + node.getTargetCell().getXCoordinate() + ", " + node.getTargetCell().getYCoordinate() + "]->"
+                + node.getTargetCell().getCellType());
+        stringBuilder
+                .append("Node[")
+                .append(node.getId())
+                .append("] moved from [")
+                .append(currentX)
+                .append(", ")
+                .append(currentY)
+                .append("] to [")
+                .append(node.getCurrentCell().getXCoordinate())
+                .append(", ")
+                .append(node.getCurrentCell().getYCoordinate())
+                .append("]; target: [")
+                .append(node.getTargetCell().getXCoordinate())
+                .append(", ")
+                .append(node.getTargetCell().getYCoordinate())
+                .append("]->")
+                .append(node.getTargetCell().getCellType())
+                .append("\n");
     }
 
     private GenericCell getPlaceToGo(Node node) {
-        int randomProbability = new Random().nextInt(100) + 1;
-
         List<Pair<CellType, Double>> events = new ArrayList<>();
         events.add(new Pair<>(CellType.HOME, node.getActivityWeight().get(CellType.HOME) / 100D));
         events.add(new Pair<>(CellType.WORK, node.getActivityWeight().get(CellType.WORK) / 100D));
@@ -143,15 +252,7 @@ public final class Application {
         CellType selectedEvent = distribution.sample();
         System.out.println("Selected: " + selectedEvent);
 
-//        int cumulativeProbabilities = 0;
-//        for (Map.Entry<CellType, Integer> entry : node.getActivityWeight().entrySet()) {
-//            cumulativeProbabilities += entry.getValue();
-//            if (randomProbability <= cumulativeProbabilities) {
-//                return getTargetCellBasedOnCellType(node, entry.getKey());
-//            }
-//        }
-
-        return  getTargetCellBasedOnCellType(node, selectedEvent);
+        return getTargetCellBasedOnCellType(node, selectedEvent);
     }
 
     private void updateActivityWeight(Node node, int hour) {
@@ -192,23 +293,27 @@ public final class Application {
         }
     }
 
-    private void placeNodesToTheirHome(Context context) {
-        context.getNodes()
-                .forEach(node -> node.setCurrentCell(node.getHomeCell()));
+    private void placeNodesToTheirHome() {
+        context.getNodes().forEach(node -> node.setCurrentCell(node.getHomeCell()));
     }
 
     private int getNrFriendsInPubs(Node node, Context context) {
-        AtomicInteger nr = new AtomicInteger(0);
+//        AtomicInteger nr = new AtomicInteger(0);
 
-        context.getPubs().forEach(pub ->
-            node.getFriends().forEach(friend -> {
-                if (pub.getPresentNodes().contains(friend)) {
-                    nr.getAndIncrement();
-                }
-            })
-        );
+        return (int) context.getPubs().stream()
+                .flatMap(pub -> pub.getPresentNodes().stream())
+                .filter(node.getFriends()::contains)
+                .count();
 
-        return nr.get();
+//        context.getPubs().forEach(pub ->
+//                node.getFriends().forEach(friend -> {
+//                    if (pub.getPresentNodes().contains(friend)) {
+//                        nr.getAndIncrement();
+//                    }
+//                })
+//        );
+//
+//        return nr.get();
     }
 
     private GenericCell getTargetCellBasedOnCellType(Node node, CellType cellType) {
@@ -221,25 +326,34 @@ public final class Application {
                 return chooseTargetPub(node);
             case OTHER:
                 return chooseOtherPlaceToGo(node);
-            default: return null;
+            default:
+                return null;
         }
     }
 
     private Pub chooseTargetPub(Node node) {
-        AtomicReference<Pub> targetPub = new AtomicReference<>();
-        AtomicInteger numberOfFriendsInPub= new AtomicInteger(0);
-
-        context.getPubs()
-                .forEach(pub -> {
+        // TODO: de reparat
+//        AtomicReference<Pub> targetPub = new AtomicReference<>();
+//        AtomicInteger numberOfFriendsInPub = new AtomicInteger(0);
+        return context.getPubs().stream()
+                .max(Comparator.comparingInt(pub -> {
                     Set<Node> commonFriends = new HashSet<>(pub.getPresentNodes());
                     commonFriends.retainAll(node.getFriends());
-                    if (commonFriends.size() >= numberOfFriendsInPub.get()) {
-                        numberOfFriendsInPub.set(commonFriends.size());
-                        targetPub.set(pub);
-                    }
-                });
+                    return commonFriends.size();
+                }))
+                .orElse(null);
 
-        return targetPub.get();
+        //        context.getPubs()
+//                .forEach(pub -> {
+//                    Set<Node> commonFriends = new HashSet<>(pub.getPresentNodes());
+//                    commonFriends.retainAll(node.getFriends());
+//                    if (commonFriends.size() >= numberOfFriendsInPub.get()) {
+//                        numberOfFriendsInPub.set(commonFriends.size());
+//                        targetPub.set(pub);
+//                    }
+//                });
+//
+//        return targetPub.get();
     }
 
     private GenericCell chooseOtherPlaceToGo(Node node) {
@@ -259,27 +373,79 @@ public final class Application {
 
     private GenericCell getNearestOtherPlaceToGo(Node node) {
         // select nearest place to go based on Euclidean distance
-        AtomicReference<GenericCell> resultCell = new AtomicReference<>();
+//        AtomicReference<GenericCell> resultCell = new AtomicReference<>();
         int currentX = node.getCurrentCell().getXCoordinate();
         int currentY = node.getCurrentCell().getYCoordinate();
 
-        AtomicReference<Double> minDistance = new AtomicReference<>(Double.MAX_VALUE);
-        context.getOthers().forEach(other -> {
-            if (Math.sqrt(Math.pow(other.getXCoordinate() - currentX, 2) + Math.pow(other.getYCoordinate() - currentY, 2)) < minDistance.get()) {
-                minDistance.set(Math.sqrt(Math.pow(other.getXCoordinate() - currentX, 2) + Math.pow(other.getYCoordinate() - currentY, 2)));
-                resultCell.set(other);
-            }
-        });
+//        AtomicReference<Double> minDistance = new AtomicReference<>(Double.MAX_VALUE);
+//        context.getOthers().forEach(other -> {
+//            double euclideanDistance = Math.sqrt(Math.pow(other.getXCoordinate() - currentX, 2)
+//                                               + Math.pow(other.getYCoordinate() - currentY, 2));
+//
+//            if (euclideanDistance < minDistance.get()) {
+//                minDistance.set(euclideanDistance);
+//                resultCell.set(other);
+//            }
+//        });
 
-        return resultCell.get();
+        return context.getOthers().stream()
+                .min(Comparator.comparingDouble(other ->
+                        Math.sqrt(Math.pow(other.getXCoordinate() - currentX, 2)
+                                + Math.pow(other.getYCoordinate() - currentY, 2))))
+                .orElse(null);
     }
 
     private GenericCell getRandomOtherPlaceToGo() {
-        int randomNumber = new Random().nextInt(context.getOthers().size());
-        return new ArrayList<>(context.getOthers()).get(randomNumber);
+        Set<GenericCell> others = context.getOthers();
+
+        if (others.isEmpty()) {
+            return null;
+        }
+
+        int randomNumber = new Random().nextInt(others.size());
+
+        return others.stream().skip(randomNumber).findFirst().orElse(null);
+
+//        GenericCell randomCell = null;
+//        int seed = context.getOthers().size();
+//
+//        if (seed > 0) {
+//            int randomNumber = new Random().nextInt(seed);
+//            randomCell = new ArrayList<>(context.getOthers()).get(randomNumber);
+//        }
+//
+//        return randomCell;
     }
 
     private void setContext(Context context) {
         this.context = context;
+    }
+
+    private void printRelationships() {
+        context.getNodes().forEach(node -> {
+            System.out.print(node.getId() + ": ");
+            node.getFriends().forEach(friend -> System.out.print(friend.getId() + ", "));
+            System.out.println();
+        });
+        System.out.println();
+    }
+
+    private void updateSocialNetwork() {
+        context.getNodes().forEach(node -> {
+            if (node.getCurrentCell().getCellType() == CellType.PUB) {
+                System.out.println("N[" + node.getId() + "] este in pub");
+                node.getFriends().forEach(friend -> {
+                    if (friend.getCurrentCell().equals(node.getCurrentCell())) {
+                        System.out.println("prietenul N[" + friend.getId() + "] este in pub");
+                        friend.getFriends().forEach(friendOfFriend -> {
+                            if (friendOfFriend.getCurrentCell().equals(node.getCurrentCell())) {
+                                // sanse de 50% sa devina prieten cu nodul initial
+                                System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 }

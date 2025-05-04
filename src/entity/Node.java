@@ -1,17 +1,20 @@
 package entity;
 
+import org.apache.commons.math3.util.Pair;
+
 import java.util.*;
 
 public class Node {
     private final int id;
-    private final GenericCell homeCell;
     private final int speed;
-    private Set<Node> friends;
-    private GenericCell currentCell;
+    private final GenericCell homeCell;
     private final GenericCell workCell;
+    private GenericCell currentCell;
     private GenericCell targetCell;
+    private Set<Node> friends;
     private int timeToStay;
     private Map<CellType, Integer> activityWeight;
+    private Queue<Pair<Integer, Integer>> path;
 
     public Node(int id, GenericCell homeCell, GenericCell work, int speed) {
         this.id = id;
@@ -92,6 +95,14 @@ public class Node {
     public void removeFriend(Node friend) {
         friends.remove(friend);
         friend.removeFriend(this);
+    }
+
+    public Queue<Pair<Integer, Integer>> getPath() {
+        return path;
+    }
+
+    public void setPath(Queue<Pair<Integer, Integer>> path) {
+        this.path = path;
     }
 
     @Override

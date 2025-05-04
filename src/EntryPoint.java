@@ -4,31 +4,22 @@ import entity.CellType;
 import entity.GenericCell;
 import entity.Node;
 import entity.Pub;
-import io.AWSS3Downloader;
-import io.AWSS3Service;
-import io.AWSS3Uploader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static utils.Utils.EMPTY_SPACE;
-import static utils.Utils.INPUT_PATH;
+import static utils.Utils.*;
 
 public final class EntryPoint {
     private static final Application application = new Application();
 
     public static void main(String[] args) {
-        AWSS3Uploader awss3Uploader = new AWSS3Uploader();
-        AWSS3Downloader awss3Downloader = new AWSS3Downloader();
-        awss3Uploader.uploadFile("input/input.txt", "input-key");
-        awss3Downloader.downloadAndVerifyFile("input-key",
-                "input/input_downloaded.txt",
-                "nGWMQkSU3kII/R+Kr89m6GU613LXBJCYiU2c+MqZ/qI=");
 
-//        Context context = getContext();
-//        application.start(context);
+        Context context = getContext();
+        application.start(context);
+
     }
 
     private static Context getContext() {
@@ -159,15 +150,15 @@ public final class EntryPoint {
                 .filter(id -> id != nodeId)
                 .collect(Collectors.toSet());
 
-         Set<Node> friends = nodes.stream()
+        Set<Node> friends = nodes.stream()
                 .filter(node -> friendsId.contains(node.getId()))
                 .collect(Collectors.toSet());
 
-         nodes.forEach(node -> {
-             if (node.getId() == nodeId) {
-                 node.setFriends(friends);
-             }
-         });
+        nodes.forEach(node -> {
+            if (node.getId() == nodeId) {
+                node.setFriends(friends);
+            }
+        });
     }
 
     private static GenericCell readObstacle(String data) {
