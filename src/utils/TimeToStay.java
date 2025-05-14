@@ -4,8 +4,8 @@ import entity.CellType;
 import entity.GenericCell;
 
 public enum TimeToStay {
-    HOME(360),
-    WORK(540),
+    HOME(180),
+    WORK(240),
     PUB(120),
     OTHER(60);
 

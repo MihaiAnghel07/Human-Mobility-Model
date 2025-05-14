@@ -9,11 +9,11 @@ public class Node {
     private final int speed;
     private final GenericCell homeCell;
     private final GenericCell workCell;
+    private final Map<CellType, Integer> activityWeight;
     private GenericCell currentCell;
     private GenericCell targetCell;
-    private Set<Node> friends;
+    private Map<Node, Integer> friends;
     private int timeToStay;
-    private Map<CellType, Integer> activityWeight;
     private Queue<Pair<Integer, Integer>> path;
 
     public Node(int id, GenericCell homeCell, GenericCell work, int speed) {
@@ -28,7 +28,7 @@ public class Node {
         this.activityWeight.put(CellType.WORK, 40);
         this.activityWeight.put(CellType.PUB, 10);
         this.activityWeight.put(CellType.OTHER, 10);
-        this.friends = new HashSet<>();
+        this.friends = new HashMap<>();
         this.timeToStay = 0;
     }
 
@@ -44,11 +44,11 @@ public class Node {
         return speed;
     }
 
-    public Set<Node> getFriends() {
+    public Map<Node, Integer> getFriends() {
         return friends;
     }
 
-    public void setFriends(Set<Node> friendsId) {
+    public void setFriends(Map<Node, Integer> friendsId) {
         this.friends = friendsId;
     }
 
@@ -76,10 +76,6 @@ public class Node {
         return activityWeight;
     }
 
-    public void setActivityWeight(Map<CellType, Integer> activityWeight) {
-        this.activityWeight = activityWeight;
-    }
-
     public int getTimeToStay() {
         return timeToStay;
     }
@@ -89,12 +85,12 @@ public class Node {
     }
 
     public void addFriend(Node friend) {
-        friends.add(friend);
-        friend.friends.add(this);
+        friends.put(friend, 0);
+        friend.friends.put(this, 0);
     }
     public void removeFriend(Node friend) {
         friends.remove(friend);
-        friend.removeFriend(this);
+        friend.friends.remove(this);
     }
 
     public Queue<Pair<Integer, Integer>> getPath() {
@@ -114,20 +110,15 @@ public class Node {
             return false;
         }
         Node node = (Node) o;
-        return id == node.id &&
-                speed == node.speed &&
-                Objects.equals(homeCell, node.homeCell) &&
-//                Objects.equals(friends, node.friends) &&
-                Objects.equals(currentCell, node.currentCell) &&
-                Objects.equals(workCell, node.workCell) &&
-                Objects.equals(targetCell, node.targetCell) &&
-                Objects.equals(activityWeight, node.activityWeight) &&
-                Objects.equals(timeToStay, node.timeToStay);
+        return id == node.id
+                && speed == node.speed
+                && Objects.equals(homeCell, node.homeCell)
+                && Objects.equals(workCell, node.workCell);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, homeCell, speed, currentCell, workCell, targetCell, activityWeight, timeToStay);
+        return Objects.hash(id, speed, homeCell, workCell);
     }
 
     @Override

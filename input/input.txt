@@ -1,7 +1,7 @@
 #dimensiunea contextului
 50 50
 #viteza min/max
-1 3
+1 8
 #numarul de noduri / pub-uri / others
 6 5 12
 #nodurile: id, homeX, homeY, workX, workY

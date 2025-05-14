@@ -19,7 +19,6 @@ public final class EntryPoint {
 
         Context context = getContext();
         application.start(context);
-
     }
 
     private static Context getContext() {
@@ -64,7 +63,7 @@ public final class EntryPoint {
                 data = scanner.nextLine();
                 if (data.startsWith("#"))
                     continue;
-                nodes.add(readNode(data));
+                nodes.add(readNode(data, minSpeed, maxSpeed));
                 i++;
             }
 
@@ -113,17 +112,18 @@ public final class EntryPoint {
         return new Context(contextX, contextY, minSpeed, maxSpeed, nodes, pubs, others, obstacles);
     }
 
-    private static Node readNode(String data) {
+    private static Node readNode(String data, int minSpeed, int maxSpeed) {
         int id = Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
         int homeXCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
         int homeYCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[2].strip());
         int workXCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[3].strip());
         int workYCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[4].strip());
+        int speed = minSpeed + new Random().nextInt(maxSpeed - minSpeed + 1);
 
         return new Node(id,
                 new GenericCell(homeXCoordinate, homeYCoordinate, CellType.HOME),
                 new GenericCell(workXCoordinate, workYCoordinate, CellType.WORK),
-                1);
+                speed);
     }
 
     private static Pub readPub(String data) {
@@ -150,9 +150,9 @@ public final class EntryPoint {
                 .filter(id -> id != nodeId)
                 .collect(Collectors.toSet());
 
-        Set<Node> friends = nodes.stream()
+        Map<Node, Integer> friends = nodes.stream()
                 .filter(node -> friendsId.contains(node.getId()))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toMap(node -> node, node -> 0));
 
         nodes.forEach(node -> {
             if (node.getId() == nodeId) {

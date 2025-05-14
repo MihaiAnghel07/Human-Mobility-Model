@@ -15,8 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-import static utils.Utils.NUMBER_OF_ITERATIONS;
-import static utils.Utils.OUTPUT_PATH;
+import static utils.Utils.*;
 
 public final class Application {
 
@@ -34,9 +33,10 @@ public final class Application {
         int hour = 6;
         for (int i = 0; i < NUMBER_OF_ITERATIONS; i++) {
 
+            // count hours from 0 to 24
             if (i % 4 == 0 && hour < 24) {
                 hour++;
-            } else if (hour > 24) {
+            } else if (hour >= 24) {
                 hour = 0;
             }
 
@@ -44,10 +44,10 @@ public final class Application {
             context.getNodes().forEach(node -> {
 
                 //update social network
-                updateSocialNetwork();
+                updateSocialNetwork(node);
 
-                if (finalHour % 4 == 0) {
-                    // update activity weight according to current hour
+                // update activity weight
+                if (finalHour == 6 || finalHour == 10 || finalHour == 18 || finalHour == 24 || finalHour == 0) {
                     updateActivityWeight(node, finalHour);
                 }
 
@@ -77,6 +77,10 @@ public final class Application {
                     2);
 
             node.setPath(paths.get(0));
+
+            if (!node.getTargetCell().equals(node.getCurrentCell()) && node.getCurrentCell().getCellType() == CellType.PUB) {
+                ((Pub) node.getCurrentCell()).removeNode(node);
+            }
         }
 
         if (node.getCurrentCell().equals(node.getTargetCell())) {
@@ -92,6 +96,10 @@ public final class Application {
                     .append(node.getTimeToStay())
                     .append(" minutes")
                     .append('\n');
+
+            if (node.getCurrentCell().getCellType() == CellType.PUB) {
+                ((Pub) node.getCurrentCell()).addNode(node);
+            }
 
         } else if (node.getTargetCell() == null && node.getTimeToStay() != 0) {
             // lower the timeToStay with one period time (one iteration = 15 minutes)
@@ -137,107 +145,15 @@ public final class Application {
                 .append(node.getTargetCell().getCellType())
                 .append("\n");
 
-        node.setCurrentCell(context.getMap()[node.getPath().peek().getFirst()][node.getPath().poll().getSecond()]);
+        System.out.println("SPEEED: " + node.getSpeed());
 
-
-//        int currentX = node.getCurrentCell().getXCoordinate();
-//        int currentY = node.getCurrentCell().getYCoordinate();
-//        int targetX = node.getTargetCell().getXCoordinate();
-//        int targetY = node.getTargetCell().getYCoordinate();
-//
-//        int deltaX = Math.abs(targetX - currentX);
-//        int deltaY = Math.abs(targetY - currentY);
-//
-//        if (deltaX == 0 && deltaY == 0) {
-//            // node has already reached its destination
-//            System.out.println("Node[" + node.getId() + "] arrived to destination");
-//
-//        } else if (deltaX == 0) {
-//            // move on oy axis
-//            moveNodeOY(node, targetY, currentY, currentX);
-//
-//        } else if (deltaY == 0) {
-//            // move on ox axis
-//            moveNodeOX(node, targetX, currentX, currentY);
-//
-//        } else {
-//            // move on ox or oy axis
-//            if ((node.getSpeed() <= deltaX && deltaX <= deltaY) || (node.getSpeed() > deltaX && deltaX >= deltaY)) {
-//                // move on ox axis
-//                moveNodeOX(node, targetX, currentX, currentY);
-//
-//            } else if ((node.getSpeed() <= deltaY && deltaY <= deltaX) || (node.getSpeed() > deltaY && deltaY >= deltaX)) {
-//                // move on oy axis
-//                moveNodeOY(node, targetY, currentY, currentX);
-//            }
-//        }
-    }
-
-    private void moveNodeOX(Node node, int targetX, int currentX, int currentY) {
-        if (targetX - currentX < 0) {
-            // move to west
-            node.setCurrentCell(context.getMap()[Math.max(0, currentX - node.getSpeed())][currentY]);
-        } else {
-            // move to east
-            node.setCurrentCell(context.getMap()[Math.max(currentX + node.getSpeed(), context.getXDimension() - 1)][currentY]);
-        }
-        System.out.println("Node[" + node.getId() + "] moved from ["
-                + currentX + ", " + currentY + "] to ["
-                + node.getCurrentCell().getXCoordinate() + ", " + node.getCurrentCell().getYCoordinate() + "]; target: ["
-                + node.getTargetCell().getXCoordinate() + ", " + node.getTargetCell().getYCoordinate() + "]->"
-                + node.getTargetCell().getCellType());
-        stringBuilder
-                .append("Node[")
-                .append(node.getId())
-                .append("] moved from [")
-                .append(currentX)
-                .append(", ")
-                .append(currentY)
-                .append("] to [")
-                .append(node.getCurrentCell().getXCoordinate())
-                .append(", ")
-                .append(node.getCurrentCell().getYCoordinate())
-                .append("]; target: [")
-                .append(node.getTargetCell().getXCoordinate())
-                .append(", ")
-                .append(node.getTargetCell().getYCoordinate())
-                .append("]->")
-                .append(node.getTargetCell().getCellType())
-                .append("\n");
-    }
-
-    private void moveNodeOY(Node node, int targetY, int currentY, int currentX) {
-        if (targetY - currentY < 0) {
-            // move to south
-            node.setCurrentCell(context.getMap()[currentX][Math.max(0, currentY - node.getSpeed())]);
-        } else {
-            // move to north
-            node.setCurrentCell(context.getMap()[currentX][Math.min(currentY + node.getSpeed(), context.getYDimension() - 1)]);
+        int i = 0;
+        Pair<Integer, Integer> nextNode = null;
+        while (i++ < node.getSpeed() && !node.getPath().isEmpty()) {
+            nextNode = node.getPath().poll();
         }
 
-        System.out.println("Node[" + node.getId() + "] moved from ["
-                + currentX + ", " + currentY + "] to ["
-                + node.getCurrentCell().getXCoordinate() + ", " + node.getCurrentCell().getYCoordinate() + "]; target: ["
-                + node.getTargetCell().getXCoordinate() + ", " + node.getTargetCell().getYCoordinate() + "]->"
-                + node.getTargetCell().getCellType());
-        stringBuilder
-                .append("Node[")
-                .append(node.getId())
-                .append("] moved from [")
-                .append(currentX)
-                .append(", ")
-                .append(currentY)
-                .append("] to [")
-                .append(node.getCurrentCell().getXCoordinate())
-                .append(", ")
-                .append(node.getCurrentCell().getYCoordinate())
-                .append("]; target: [")
-                .append(node.getTargetCell().getXCoordinate())
-                .append(", ")
-                .append(node.getTargetCell().getYCoordinate())
-                .append("]->")
-                .append(node.getTargetCell().getCellType())
-                .append("\n");
+        node.setCurrentCell(context.getMap()[nextNode.getFirst()][nextNode.getSecond()]);
     }
 
     private GenericCell getPlaceToGo(Node node) {
@@ -256,33 +172,32 @@ public final class Application {
     }
 
     private void updateActivityWeight(Node node, int hour) {
-        if (hour >= 6 && hour <= 10) {
-            context.getPubs().forEach(pub -> {
-                if (getNrFriendsInPubs(node, context) > 0) {
-                    node.getActivityWeight().put(CellType.PUB, 10);
-                    node.getActivityWeight().put(CellType.HOME, 10);
-                } else {
-                    node.getActivityWeight().put(CellType.PUB, 5);
-                    node.getActivityWeight().put(CellType.HOME, 15);
-                }
-            });
+        if (hour >= 6 && hour <= 9) {
+            if (getNrFriendsInPubs(node) > 0) {
+                System.out.println("AAA: " + getNrFriendsInPubs(node));
+                node.getActivityWeight().put(CellType.PUB, 10);
+                node.getActivityWeight().put(CellType.HOME, 10);
+            } else {
+                node.getActivityWeight().put(CellType.PUB, 5);
+                node.getActivityWeight().put(CellType.HOME, 15);
+            }
             node.getActivityWeight().put(CellType.WORK, 70);
             node.getActivityWeight().put(CellType.OTHER, 10);
-        } else if (hour >= 11 && hour <= 18) {
+        } else if (hour >= 10 && hour <= 17) {
             node.getActivityWeight().put(CellType.HOME, 10);
             node.getActivityWeight().put(CellType.PUB, 5);
             node.getActivityWeight().put(CellType.WORK, 65);
             node.getActivityWeight().put(CellType.OTHER, 20);
-        } else if (hour >= 19 && hour <= 24) {
-            context.getPubs().forEach(pub -> {
-                if (getNrFriendsInPubs(node, context) > 0) {
-                    node.getActivityWeight().put(CellType.PUB, 40);
-                    node.getActivityWeight().put(CellType.HOME, 40);
-                } else {
-                    node.getActivityWeight().put(CellType.PUB, 25);
-                    node.getActivityWeight().put(CellType.HOME, 55);
-                }
-            });
+        } else if (hour >= 18 && hour <= 24) {
+            if (getNrFriendsInPubs(node) > 0) {
+                System.out.println("BBB: " + getNrFriendsInPubs(node));
+
+                node.getActivityWeight().put(CellType.PUB, 50);
+                node.getActivityWeight().put(CellType.HOME, 30);
+            } else {
+                node.getActivityWeight().put(CellType.PUB, 25);
+                node.getActivityWeight().put(CellType.HOME, 55);
+            }
             node.getActivityWeight().put(CellType.WORK, 5);
             node.getActivityWeight().put(CellType.OTHER, 15);
         } else {
@@ -297,23 +212,11 @@ public final class Application {
         context.getNodes().forEach(node -> node.setCurrentCell(node.getHomeCell()));
     }
 
-    private int getNrFriendsInPubs(Node node, Context context) {
-//        AtomicInteger nr = new AtomicInteger(0);
-
+    private int getNrFriendsInPubs(Node node) {
         return (int) context.getPubs().stream()
                 .flatMap(pub -> pub.getPresentNodes().stream())
-                .filter(node.getFriends()::contains)
+                .filter(node.getFriends()::containsKey)
                 .count();
-
-//        context.getPubs().forEach(pub ->
-//                node.getFriends().forEach(friend -> {
-//                    if (pub.getPresentNodes().contains(friend)) {
-//                        nr.getAndIncrement();
-//                    }
-//                })
-//        );
-//
-//        return nr.get();
     }
 
     private GenericCell getTargetCellBasedOnCellType(Node node, CellType cellType) {
@@ -332,28 +235,13 @@ public final class Application {
     }
 
     private Pub chooseTargetPub(Node node) {
-        // TODO: de reparat
-//        AtomicReference<Pub> targetPub = new AtomicReference<>();
-//        AtomicInteger numberOfFriendsInPub = new AtomicInteger(0);
         return context.getPubs().stream()
                 .max(Comparator.comparingInt(pub -> {
                     Set<Node> commonFriends = new HashSet<>(pub.getPresentNodes());
-                    commonFriends.retainAll(node.getFriends());
+                    commonFriends.retainAll(node.getFriends().keySet());
                     return commonFriends.size();
                 }))
                 .orElse(null);
-
-        //        context.getPubs()
-//                .forEach(pub -> {
-//                    Set<Node> commonFriends = new HashSet<>(pub.getPresentNodes());
-//                    commonFriends.retainAll(node.getFriends());
-//                    if (commonFriends.size() >= numberOfFriendsInPub.get()) {
-//                        numberOfFriendsInPub.set(commonFriends.size());
-//                        targetPub.set(pub);
-//                    }
-//                });
-//
-//        return targetPub.get();
     }
 
     private GenericCell chooseOtherPlaceToGo(Node node) {
@@ -373,20 +261,8 @@ public final class Application {
 
     private GenericCell getNearestOtherPlaceToGo(Node node) {
         // select nearest place to go based on Euclidean distance
-//        AtomicReference<GenericCell> resultCell = new AtomicReference<>();
         int currentX = node.getCurrentCell().getXCoordinate();
         int currentY = node.getCurrentCell().getYCoordinate();
-
-//        AtomicReference<Double> minDistance = new AtomicReference<>(Double.MAX_VALUE);
-//        context.getOthers().forEach(other -> {
-//            double euclideanDistance = Math.sqrt(Math.pow(other.getXCoordinate() - currentX, 2)
-//                                               + Math.pow(other.getYCoordinate() - currentY, 2));
-//
-//            if (euclideanDistance < minDistance.get()) {
-//                minDistance.set(euclideanDistance);
-//                resultCell.set(other);
-//            }
-//        });
 
         return context.getOthers().stream()
                 .min(Comparator.comparingDouble(other ->
@@ -406,15 +282,6 @@ public final class Application {
 
         return others.stream().skip(randomNumber).findFirst().orElse(null);
 
-//        GenericCell randomCell = null;
-//        int seed = context.getOthers().size();
-//
-//        if (seed > 0) {
-//            int randomNumber = new Random().nextInt(seed);
-//            randomCell = new ArrayList<>(context.getOthers()).get(randomNumber);
-//        }
-//
-//        return randomCell;
     }
 
     private void setContext(Context context) {
@@ -423,29 +290,63 @@ public final class Application {
 
     private void printRelationships() {
         context.getNodes().forEach(node -> {
-            System.out.print(node.getId() + ": ");
-            node.getFriends().forEach(friend -> System.out.print(friend.getId() + ", "));
-            System.out.println();
+            StringBuilder string = new StringBuilder(node.getId() + ": ");
+            node.getFriends().keySet().forEach(friend -> string.append(friend.getId()).append(", "));
+            System.out.println(string.substring(0, string.length() - 2));
         });
         System.out.println();
     }
 
-    private void updateSocialNetwork() {
-        context.getNodes().forEach(node -> {
-            if (node.getCurrentCell().getCellType() == CellType.PUB) {
-                System.out.println("N[" + node.getId() + "] este in pub");
-                node.getFriends().forEach(friend -> {
-                    if (friend.getCurrentCell().equals(node.getCurrentCell())) {
-                        System.out.println("prietenul N[" + friend.getId() + "] este in pub");
-                        friend.getFriends().forEach(friendOfFriend -> {
-                            if (friendOfFriend.getCurrentCell().equals(node.getCurrentCell())) {
-                                // sanse de 50% sa devina prieten cu nodul initial
-                                System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+    private void updateSocialNetwork(Node node) {
+        Random random = new Random();
+
+        List<Node> newFriends = new ArrayList<>();
+
+        if (node.getCurrentCell().getCellType() == CellType.PUB) {
+            System.out.println("N[" + node.getId() + "] este in pub");
+            node.getFriends().keySet().forEach(friend -> {
+                if (friend.getCurrentCell().equals(node.getCurrentCell())) {
+                    System.out.println("prietenul N[" + friend.getId() + "] este in pub");
+                    friend.getFriends().keySet().forEach(friendOfFriend -> {
+                        if (friendOfFriend.getId() != node.getId()
+                                && friendOfFriend.getCurrentCell().equals(node.getCurrentCell())
+                                && !node.getFriends().containsKey(friendOfFriend)) {
+                            System.out.println("prietenul prietenul N[" + friendOfFriend.getId() + "] este in pub");
+
+                            // sanse de 50% sa devina prieten cu nodul initial
+                            if (random.nextInt(2) == 0) {
+                                newFriends.add(friendOfFriend);
+                                System.out.println("Nodul N[" + node.getId() + "] a devenit prieten cu N[" + friendOfFriend.getId() + "].");
                             }
-                        });
-                    }
-                });
+                        }
+                    });
+                }
+            });
+        }
+
+        newFriends.forEach(node::addFriend);
+
+        removeOldFriends(node);
+    }
+
+    private void removeOldFriends(Node node) {
+        node.getFriends().keySet().forEach(friend -> {
+            if (node.getCurrentCell().equals(friend.getCurrentCell())) {
+                node.getFriends().put(friend, 0);
+            } else {
+//                System.out.println("ASDSADASSADASDASDASDAD: " + node.getFriends().get(friend));
+                node.getFriends().put(friend, node.getFriends().get(friend) + 1);
             }
         });
+
+        Set<Node> friendsToBeRemoved = new HashSet<>();
+
+        node.getFriends().forEach((friend, lastTimeSeen) -> {
+            if (lastTimeSeen > MAXIMUM_ALLOWED_LAST_TIME_SEEN) {
+                friendsToBeRemoved.add(friend);
+            }
+        });
+
+        friendsToBeRemoved.forEach(node::removeFriend);
     }
 }
