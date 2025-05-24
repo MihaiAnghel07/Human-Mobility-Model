@@ -18,10 +18,13 @@ public final class Context {
     private final Set<Pub> pubs;
     private final Set<GenericCell> others;
     private final Set<GenericCell> obstacles;
+    private final int maximumAllowedLastTimeSeen;
+    private final int chancesToBecomeFriends;
     private final GenericCell[][] map;
 
     public Context(int xDimension, int yDimension, int minSpeed, int maxSpeed, Set<Node> nodes,
-                   Set<Pub> pubs, Set<GenericCell> others, Set<GenericCell> obstacles) {
+                   Set<Pub> pubs, Set<GenericCell> others, Set<GenericCell> obstacles, int maximumAllowedLastTimeSeen,
+                   int chancesToBecomeFriends) {
         this.xDimension = xDimension;
         this.yDimension = yDimension;
         this.minSpeed = minSpeed;
@@ -30,6 +33,8 @@ public final class Context {
         this.pubs = pubs;
         this.others = others;
         this.obstacles = obstacles;
+        this.maximumAllowedLastTimeSeen = maximumAllowedLastTimeSeen;
+        this.chancesToBecomeFriends = chancesToBecomeFriends;
         this.map = new GenericCell[xDimension][yDimension];
 
         // set the home and work places on map
@@ -87,6 +92,14 @@ public final class Context {
 
     public Set<GenericCell> getObstacles() {
         return obstacles;
+    }
+
+    public int getMaximumAllowedLastTimeSeen() {
+        return maximumAllowedLastTimeSeen;
+    }
+
+    public int getChancesToBecomeFriends() {
+        return chancesToBecomeFriends;
     }
 
     public GenericCell[][] getMap() {

@@ -10,7 +10,8 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static utils.Utils.*;
+import static utils.Utils.EMPTY_SPACE;
+import static utils.Utils.INPUT_PATH;
 
 public final class EntryPoint {
     private static final Application application = new Application();
@@ -29,6 +30,8 @@ public final class EntryPoint {
         int nrNodes = 0;
         int nrPubs = 0;
         int nrOthers = 0;
+        int maximumAllowedLastTimeSeen = 0;
+        int chancesToBecomeFriends = 0;
         Set<Node> nodes = new HashSet<>();
         Set<Pub> pubs = new HashSet<>();
         Set<GenericCell> others = new HashSet<>();
@@ -88,12 +91,21 @@ public final class EntryPoint {
             }
 
             // read friendship
-            while (scanner.hasNextLine() && !data.startsWith("#obstacole")) {
+            while (scanner.hasNextLine() && !data.startsWith("#numarul")) {
                 data = scanner.nextLine();
                 if (data.startsWith("#"))
                     continue;
                 readFriendship(data, nodes);
             }
+
+            // read maximum allowed days nodes don't see each other, but remain friends
+            data = scanner.nextLine();
+            maximumAllowedLastTimeSeen = readMaximumAllowedLastTimeSeen(data);
+            scanner.nextLine();
+
+            // read the chances that the node will make friends with the friends of its friends
+            data = scanner.nextLine();
+            chancesToBecomeFriends = readChancesToBecomeFriends(data);
 
             // read obstacles
             while (scanner.hasNextLine()) {
@@ -109,7 +121,8 @@ public final class EntryPoint {
             e.printStackTrace();
         }
 
-        return new Context(contextX, contextY, minSpeed, maxSpeed, nodes, pubs, others, obstacles);
+        return new Context(contextX, contextY, minSpeed, maxSpeed, nodes, pubs, others, obstacles,
+                maximumAllowedLastTimeSeen, chancesToBecomeFriends);
     }
 
     private static Node readNode(String data, int minSpeed, int maxSpeed) {
@@ -166,6 +179,14 @@ public final class EntryPoint {
         int yCoordinate = Integer.parseInt(data.split(EMPTY_SPACE)[1].strip());
 
         return new GenericCell(xCoordinate, yCoordinate, CellType.OBSTACLE);
+    }
+
+    private static int readMaximumAllowedLastTimeSeen(String data) {
+        return Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
+    }
+
+    private static int readChancesToBecomeFriends(String data) {
+        return Integer.parseInt(data.split(EMPTY_SPACE)[0].strip());
     }
 
 }

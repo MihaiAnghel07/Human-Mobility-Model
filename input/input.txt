@@ -1,7 +1,7 @@
 #dimensiunea contextului
 50 50
 #viteza min/max
-1 8
+2 7
 #numarul de noduri / pub-uri / others
 6 5 12
 #nodurile: id, homeX, homeY, workX, workY
@@ -16,7 +16,7 @@
 #9 3 44 42 18
 #10 22 21 17 9
 #pub-urile: id, pubX, pubY
-1 29 29
+1 29 26
 2 5 4
 3 16 42
 4 43 9
@@ -25,7 +25,7 @@
 19 2
 31 10
 4 15
-43 14
+48 17
 6 21
 16 26
 44 29
@@ -44,6 +44,10 @@
 #7 1
 #8 3
 #9 1
+#numarul maxim de zile in care nodurile nu se vad, dar raman prieteni
+50
+#sansele ca un nod sa se imprieteneasca cu prietenii prietenului lui [1 - 100]
+50
 #obstacole: obstacleX, obstacleX
 10 2
 10 3
@@ -175,3 +179,15 @@
 36 46
 36 47
 36 48
+43 0
+43 1
+43 2
+43 3
+43 4
+43 5
+44 5
+45 5
+46 5
+47 5
+48 5
+49 5

@@ -58,13 +58,13 @@ public final class Application {
 
         System.out.println("Relationships after: ");
         printRelationships();
+        printAverageNodesSpeed();
 
         try {
             Files.writeString(Path.of(OUTPUT_PATH), stringBuilder.toString());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private void moveNode(Node node) {
@@ -88,14 +88,6 @@ public final class Application {
             node.setTargetCell(null);
             node.setPath(null);
             node.setTimeToStay(TimeToStay.getMinutes(node.getCurrentCell()));
-            System.out.println("Node[" + node.getId() + "] stays " + node.getTimeToStay() + " minutes");
-            stringBuilder
-                    .append("Node[")
-                    .append(node.getId())
-                    .append("] stays ")
-                    .append(node.getTimeToStay())
-                    .append(" minutes")
-                    .append('\n');
 
             if (node.getCurrentCell().getCellType() == CellType.PUB) {
                 ((Pub) node.getCurrentCell()).addNode(node);
@@ -120,9 +112,15 @@ public final class Application {
     }
 
     private void moveNodeToTarget(Node node) {
+        int i = 0;
+        Pair<Integer, Integer> nextNode = null;
+        while (i++ < node.getSpeed() && !node.getPath().isEmpty()) {
+            nextNode = node.getPath().poll();
+        }
+
         System.out.println("Node[" + node.getId() + "] moved from ["
                 + node.getCurrentCell().getXCoordinate() + ", " + node.getCurrentCell().getYCoordinate() + "] to ["
-                + node.getPath().peek().getFirst() + ", " + node.getPath().peek().getSecond() + "]; target: ["
+                + nextNode.getFirst() + ", " + nextNode.getSecond() + "]; target: ["
                 + node.getTargetCell().getXCoordinate() + ", " + node.getTargetCell().getYCoordinate() + "]->"
                 + node.getTargetCell().getCellType());
 
@@ -134,9 +132,9 @@ public final class Application {
                 .append(", ")
                 .append(node.getCurrentCell().getYCoordinate())
                 .append("] to [")
-                .append(node.getPath().peek().getFirst())
+                .append(nextNode.getFirst())
                 .append(", ")
-                .append(node.getPath().peek().getSecond())
+                .append(nextNode.getSecond())
                 .append("]; target: [")
                 .append(node.getTargetCell().getXCoordinate())
                 .append(", ")
@@ -144,14 +142,6 @@ public final class Application {
                 .append("]->")
                 .append(node.getTargetCell().getCellType())
                 .append("\n");
-
-        System.out.println("SPEEED: " + node.getSpeed());
-
-        int i = 0;
-        Pair<Integer, Integer> nextNode = null;
-        while (i++ < node.getSpeed() && !node.getPath().isEmpty()) {
-            nextNode = node.getPath().poll();
-        }
 
         node.setCurrentCell(context.getMap()[nextNode.getFirst()][nextNode.getSecond()]);
     }
@@ -174,7 +164,6 @@ public final class Application {
     private void updateActivityWeight(Node node, int hour) {
         if (hour >= 6 && hour <= 9) {
             if (getNrFriendsInPubs(node) > 0) {
-                System.out.println("AAA: " + getNrFriendsInPubs(node));
                 node.getActivityWeight().put(CellType.PUB, 10);
                 node.getActivityWeight().put(CellType.HOME, 10);
             } else {
@@ -190,13 +179,11 @@ public final class Application {
             node.getActivityWeight().put(CellType.OTHER, 20);
         } else if (hour >= 18 && hour <= 24) {
             if (getNrFriendsInPubs(node) > 0) {
-                System.out.println("BBB: " + getNrFriendsInPubs(node));
-
-                node.getActivityWeight().put(CellType.PUB, 50);
-                node.getActivityWeight().put(CellType.HOME, 30);
+                node.getActivityWeight().put(CellType.PUB, 55);
+                node.getActivityWeight().put(CellType.HOME, 25);
             } else {
-                node.getActivityWeight().put(CellType.PUB, 25);
-                node.getActivityWeight().put(CellType.HOME, 55);
+                node.getActivityWeight().put(CellType.PUB, 30);
+                node.getActivityWeight().put(CellType.HOME, 50);
             }
             node.getActivityWeight().put(CellType.WORK, 5);
             node.getActivityWeight().put(CellType.OTHER, 15);
@@ -313,8 +300,9 @@ public final class Application {
                                 && !node.getFriends().containsKey(friendOfFriend)) {
                             System.out.println("prietenul prietenul N[" + friendOfFriend.getId() + "] este in pub");
 
-                            // sanse de 50% sa devina prieten cu nodul initial
-                            if (random.nextInt(2) == 0) {
+                            // sanse sa devina prieten cu nodul initial
+                            int chances = random.nextInt(context.getChancesToBecomeFriends());
+                            if (chances > 0 && chances < context.getChancesToBecomeFriends()) {
                                 newFriends.add(friendOfFriend);
                                 System.out.println("Nodul N[" + node.getId() + "] a devenit prieten cu N[" + friendOfFriend.getId() + "].");
                             }
@@ -334,7 +322,6 @@ public final class Application {
             if (node.getCurrentCell().equals(friend.getCurrentCell())) {
                 node.getFriends().put(friend, 0);
             } else {
-//                System.out.println("ASDSADASSADASDASDASDAD: " + node.getFriends().get(friend));
                 node.getFriends().put(friend, node.getFriends().get(friend) + 1);
             }
         });
@@ -342,11 +329,18 @@ public final class Application {
         Set<Node> friendsToBeRemoved = new HashSet<>();
 
         node.getFriends().forEach((friend, lastTimeSeen) -> {
-            if (lastTimeSeen > MAXIMUM_ALLOWED_LAST_TIME_SEEN) {
+            if (lastTimeSeen > context.getMaximumAllowedLastTimeSeen() * 4 * 24) {
                 friendsToBeRemoved.add(friend);
             }
         });
 
         friendsToBeRemoved.forEach(node::removeFriend);
+    }
+
+    private void printAverageNodesSpeed() {
+        System.out.printf("Viteza medie: %.2f%n", context.getNodes().stream()
+                .mapToDouble(Node::getSpeed)
+                .average()
+                .orElse(0.0D));
     }
 }

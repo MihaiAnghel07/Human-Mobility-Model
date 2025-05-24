@@ -12,7 +12,6 @@ public final class Utils {
     public static final String OUTPUT_PATH = "output/output.txt";
     public static final String EMPTY_SPACE = " ";
     public static final int NUMBER_OF_ITERATIONS = 2689;
-    public static final int MAXIMUM_ALLOWED_LAST_TIME_SEEN = 5000;
 
     private Utils() {
     }
