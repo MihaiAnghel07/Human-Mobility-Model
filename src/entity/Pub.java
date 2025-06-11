@@ -1,6 +1,7 @@
 package entity;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public final class Pub extends GenericCell {
@@ -29,8 +30,32 @@ public final class Pub extends GenericCell {
         return presentNodes.remove(node);
     }
 
-    public void clearPresentNodes() {
-        presentNodes.clear();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        Pub pub = (Pub) o;
+        return id == pub.id && Objects.equals(presentNodes, pub.presentNodes);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id, presentNodes);
+    }
+
+    @Override
+    public String toString() {
+        return "Pub{" +
+                super.toString() +
+                "id=" + id +
+                ", presentNodes=" + presentNodes +
+                '}';
+    }
 }

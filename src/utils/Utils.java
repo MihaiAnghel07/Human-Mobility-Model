@@ -12,6 +12,7 @@ public final class Utils {
     public static final String OUTPUT_PATH = "output/output.txt";
     public static final String EMPTY_SPACE = " ";
     public static final int NUMBER_OF_ITERATIONS = 2689;
+    public static final double ONE_HUNDRED_CONSTANT = 100D;
 
     private Utils() {
     }
@@ -21,9 +22,9 @@ public final class Utils {
             {1, 0},  // jos
             {0, -1}, // stanga
             {0, 1},   // dreapta
-            {-1, -1}, // sus-stânga
+            {-1, -1}, // sus-stanga
             {-1, 1},  // sus-dreapta
-            {1, -1},  // jos-stânga
+            {1, -1},  // jos-stanga
             {1, 1}    // jos-dreapta
     };
 
@@ -75,7 +76,7 @@ public final class Utils {
                 }
             }
 
-            // marcăm nodurile de pe nivelul actual ca vizitate după ce toate au fost procesate
+            // marcam nodurile de pe nivelul actual ca vizitate dupa ce toate au fost procesate
             for (int i = 0; i < n; i++) {
                 for (int j = 0; j < n; j++) {
                     if (levelVisited[i][j]) {

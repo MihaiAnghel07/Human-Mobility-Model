@@ -19,8 +19,8 @@ import static utils.Utils.*;
 
 public final class Application {
 
-    private Context context;
     private final StringBuilder stringBuilder = new StringBuilder();
+    private Context context;
 
     public void start(Context context) {
         setContext(context);
@@ -148,10 +148,10 @@ public final class Application {
 
     private GenericCell getPlaceToGo(Node node) {
         List<Pair<CellType, Double>> events = new ArrayList<>();
-        events.add(new Pair<>(CellType.HOME, node.getActivityWeight().get(CellType.HOME) / 100D));
-        events.add(new Pair<>(CellType.WORK, node.getActivityWeight().get(CellType.WORK) / 100D));
-        events.add(new Pair<>(CellType.PUB, node.getActivityWeight().get(CellType.PUB) / 100D));
-        events.add(new Pair<>(CellType.OTHER, node.getActivityWeight().get(CellType.OTHER) / 100D));
+        events.add(new Pair<>(CellType.HOME, node.getActivityWeight().get(CellType.HOME) / ONE_HUNDRED_CONSTANT));
+        events.add(new Pair<>(CellType.WORK, node.getActivityWeight().get(CellType.WORK) / ONE_HUNDRED_CONSTANT));
+        events.add(new Pair<>(CellType.PUB, node.getActivityWeight().get(CellType.PUB) / ONE_HUNDRED_CONSTANT));
+        events.add(new Pair<>(CellType.OTHER, node.getActivityWeight().get(CellType.OTHER) / ONE_HUNDRED_CONSTANT));
 
         EnumeratedDistribution<CellType> distribution = new EnumeratedDistribution<>(events);
 
@@ -163,13 +163,8 @@ public final class Application {
 
     private void updateActivityWeight(Node node, int hour) {
         if (hour >= 6 && hour <= 9) {
-            if (getNrFriendsInPubs(node) > 0) {
-                node.getActivityWeight().put(CellType.PUB, 10);
-                node.getActivityWeight().put(CellType.HOME, 10);
-            } else {
-                node.getActivityWeight().put(CellType.PUB, 5);
-                node.getActivityWeight().put(CellType.HOME, 15);
-            }
+            node.getActivityWeight().put(CellType.PUB, 5);
+            node.getActivityWeight().put(CellType.HOME, 15);
             node.getActivityWeight().put(CellType.WORK, 70);
             node.getActivityWeight().put(CellType.OTHER, 10);
         } else if (hour >= 10 && hour <= 17) {
@@ -286,25 +281,20 @@ public final class Application {
 
     private void updateSocialNetwork(Node node) {
         Random random = new Random();
-
         List<Node> newFriends = new ArrayList<>();
 
         if (node.getCurrentCell().getCellType() == CellType.PUB) {
-            System.out.println("N[" + node.getId() + "] este in pub");
             node.getFriends().keySet().forEach(friend -> {
                 if (friend.getCurrentCell().equals(node.getCurrentCell())) {
-                    System.out.println("prietenul N[" + friend.getId() + "] este in pub");
                     friend.getFriends().keySet().forEach(friendOfFriend -> {
                         if (friendOfFriend.getId() != node.getId()
                                 && friendOfFriend.getCurrentCell().equals(node.getCurrentCell())
                                 && !node.getFriends().containsKey(friendOfFriend)) {
-                            System.out.println("prietenul prietenul N[" + friendOfFriend.getId() + "] este in pub");
 
-                            // sanse sa devina prieten cu nodul initial
-                            int chances = random.nextInt(context.getChancesToBecomeFriends());
-                            if (chances > 0 && chances < context.getChancesToBecomeFriends()) {
+                            // chances to become friend with initial node
+                            int chances = random.nextInt(100);
+                            if (chances <= context.getChancesToBecomeFriends()) {
                                 newFriends.add(friendOfFriend);
-                                System.out.println("Nodul N[" + node.getId() + "] a devenit prieten cu N[" + friendOfFriend.getId() + "].");
                             }
                         }
                     });
@@ -329,7 +319,7 @@ public final class Application {
         Set<Node> friendsToBeRemoved = new HashSet<>();
 
         node.getFriends().forEach((friend, lastTimeSeen) -> {
-            if (lastTimeSeen > context.getMaximumAllowedLastTimeSeen() * 4 * 24) {
+            if (((lastTimeSeen / 4) / 24) > context.getMaximumAllowedLastTimeSeen()) {
                 friendsToBeRemoved.add(friend);
             }
         });

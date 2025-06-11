@@ -3,8 +3,8 @@ package entity;
 import java.util.Objects;
 
 public class GenericCell {
-    private int xCoordinate;
-    private int yCoordinate;
+    private final int xCoordinate;
+    private final int yCoordinate;
     private final CellType cellType;
 
     public GenericCell(int xCoordinate, int yCoordinate, CellType cellType) {
@@ -19,14 +19,6 @@ public class GenericCell {
 
     public int getYCoordinate() {
         return yCoordinate;
-    }
-
-    public void setXCoordinate(int xCoordinate) {
-        this.xCoordinate = xCoordinate;
-    }
-
-    public void setYCoordinate(int yCoordinate) {
-        this.yCoordinate = yCoordinate;
     }
 
     public CellType getCellType() {

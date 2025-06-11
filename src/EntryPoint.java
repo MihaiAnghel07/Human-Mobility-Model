@@ -20,6 +20,7 @@ public final class EntryPoint {
 
         Context context = getContext();
         application.start(context);
+
     }
 
     private static Context getContext() {
@@ -121,8 +122,7 @@ public final class EntryPoint {
             e.printStackTrace();
         }
 
-        return new Context(contextX, contextY, minSpeed, maxSpeed, nodes, pubs, others, obstacles,
-                maximumAllowedLastTimeSeen, chancesToBecomeFriends);
+        return new Context(contextX, contextY, nodes, pubs, others, obstacles, maximumAllowedLastTimeSeen, chancesToBecomeFriends);
     }
 
     private static Node readNode(String data, int minSpeed, int maxSpeed) {

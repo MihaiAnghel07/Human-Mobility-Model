@@ -30,6 +30,7 @@ public class Node {
         this.activityWeight.put(CellType.OTHER, 10);
         this.friends = new HashMap<>();
         this.timeToStay = 0;
+        this.path = null;
     }
 
     public int getId() {
@@ -125,13 +126,9 @@ public class Node {
     public String toString() {
         return "Node{" +
                 "id=" + id +
+                ", speed=" + speed +
                 ", homeCell=" + homeCell +
-//                ", speed=" + speed +
-//                ", friends=" + friends +
-//                ", currentCell=" + currentCell +
-//                ", targetCell=" + targetCell +
-//                ", activityWeight=" + activityWeight +
-//                ", timeToStay=" + timeToStay +
+                ", workCell=" + workCell +
                 '}';
     }
 }

@@ -12,8 +12,6 @@ import java.util.Set;
 public final class Context {
     private final int xDimension;
     private final int yDimension;
-    private final int minSpeed;
-    private final int maxSpeed;
     private final Set<Node> nodes;
     private final Set<Pub> pubs;
     private final Set<GenericCell> others;
@@ -22,13 +20,10 @@ public final class Context {
     private final int chancesToBecomeFriends;
     private final GenericCell[][] map;
 
-    public Context(int xDimension, int yDimension, int minSpeed, int maxSpeed, Set<Node> nodes,
-                   Set<Pub> pubs, Set<GenericCell> others, Set<GenericCell> obstacles, int maximumAllowedLastTimeSeen,
-                   int chancesToBecomeFriends) {
+    public Context(int xDimension, int yDimension, Set<Node> nodes, Set<Pub> pubs, Set<GenericCell> others,
+                   Set<GenericCell> obstacles, int maximumAllowedLastTimeSeen, int chancesToBecomeFriends) {
         this.xDimension = xDimension;
         this.yDimension = yDimension;
-        this.minSpeed = minSpeed;
-        this.maxSpeed = maxSpeed;
         this.nodes = nodes;
         this.pubs = pubs;
         this.others = others;
@@ -60,22 +55,6 @@ public final class Context {
                 }
             }
         }
-    }
-
-    public int getXDimension() {
-        return xDimension;
-    }
-
-    public int getYDimension() {
-        return yDimension;
-    }
-
-    public int getMinSpeed() {
-        return minSpeed;
-    }
-
-    public int getMaxSpeed() {
-        return maxSpeed;
     }
 
     public Set<Node> getNodes() {
@@ -115,17 +94,16 @@ public final class Context {
             return false;
         }
         Context context = (Context) o;
-        return xDimension == context.xDimension && yDimension == context.yDimension
+        return xDimension == context.xDimension
+                && yDimension == context.yDimension
                 && Arrays.deepEquals(map, context.map)
-                && minSpeed == context.minSpeed
-                && maxSpeed == context.maxSpeed
                 && nodes.equals(context.nodes)
                 && pubs.equals(context.pubs);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(xDimension, yDimension, minSpeed, maxSpeed, nodes, pubs);
+        int result = Objects.hash(xDimension, yDimension, nodes, pubs);
         result = 31 * result + Arrays.deepHashCode(map);
         return result;
     }
@@ -136,8 +114,6 @@ public final class Context {
                 "xDimension=" + xDimension + "\n" +
                 ", yDimension=" + yDimension + "\n" +
                 ", map=" + printMap() + "\n" +
-                ", minSpeed=" + minSpeed + "\n" +
-                ", maxSpeed=" + maxSpeed + "\n" +
                 ", nodes=" + nodes + "\n" +
                 ", pubs=" + pubs + "\n" +
                 '}';
